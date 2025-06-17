@@ -11,10 +11,6 @@
       }
     ]
   },
-  "scopes": [
-    "ZohoCRM.modules.ALL",
-    "ZohoCRM.settings.ALL"
-  ],
   "frameworkVersion": "1.0",
   "platform": "crmapi",
   "category": "general",
@@ -26,7 +22,7 @@
       "notification": true
     },
     "modules": {
-      "read": ["Contacts"]
+      "read": ["Contacts", "Leads", "Accounts"]
     }
   }
 }
