@@ -1,0 +1,32 @@
+{
+  "name": "TEST",
+  "version": "1.0.0",
+  "description": "Información del cliente",
+  "modules": {
+    "widgets": [
+      {
+        "location": "detailview",
+        "name": "TEST",
+        "url": "app.html"
+      }
+    ]
+  },
+  "scopes": [
+    "ZohoCRM.modules.ALL",
+    "ZohoCRM.settings.ALL"
+  ],
+  "frameworkVersion": "1.0",
+  "platform": "crmapi",
+  "category": "general",
+  "hostInfo": {
+    "moduleSupport": true
+  },
+  "permissions": {
+    "ui": {
+      "notification": true
+    },
+    "modules": {
+      "read": ["Contacts"]
+    }
+  }
+}
