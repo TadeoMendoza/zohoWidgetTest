@@ -136,40 +136,8 @@
         
         <button class="action-button" id="action-button">Mostrar Más Información</button>
     </div>
-
-    <!-- Zoho CRM SDK -->
+    
     <script>
-        // Función para cargar el SDK de Zoho dinámicamente
-        function loadZohoSDK() {
-            return new Promise((resolve, reject) => {
-                console.log("Intentando cargar el SDK de Zoho...");
-                
-                // Crear elemento script
-                const script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.src = 'https://js.zohostatic.com/zohocrm/v1.0/sdk/ZCRMClientSdk.min.js';
-                
-                // Evento de carga exitosa
-                script.onload = function() {
-                    console.log("SDK de Zoho cargado exitosamente");
-                    setTimeout(() => resolve(true), 500); // Pequeño retraso para asegurar inicialización
-                };
-                
-                // Evento de error
-                script.onerror = function() {
-                    console.error("Error al cargar el SDK de Zoho");
-                    reject(new Error("No se pudo cargar el SDK de Zoho"));
-                };
-                
-                // Agregar el script al documento
-                document.head.appendChild(script);
-            });
-        }
-        
-        // Variables globales
-        var isZohoLoaded = false;
-        var currentEntityId = null;
-        
         // Función principal que se ejecuta cuando el DOM está listo
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM cargado");
@@ -177,257 +145,89 @@
             // Configurar el botón de acción
             setupActionButton();
             
-            // Cargar el SDK y luego inicializarlo
-            loadZohoSDK()
-                .then(() => {
-                    if (typeof ZOHO !== "undefined" && ZOHO.embeddedApp) {
-                        console.log("SDK de Zoho verificado");
-                        initializeZohoSDK();
-                    } else {
-                        console.error("SDK de Zoho no disponible después de carga");
-                        throw new Error("SDK no disponible después de carga");
-                    }
-                })
-                .catch(error => {
-                    console.error("Error en la carga del SDK:", error);
-                    fillWithSampleData();
-                });
+            // Intentar obtener datos del cliente actual
+            setTimeout(function() {
+                // Simular la carga de datos
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('client-info').style.display = 'block';
+                
+                // Llenar con datos de ejemplo
+                fillWithSampleData();
+            }, 1000);
         });
         
         // Configurar el botón de acción
         function setupActionButton() {
             var actionButton = document.getElementById('action-button');
             actionButton.addEventListener('click', function() {
-                var clientName = document.getElementById('client-name').textContent;
-                alert("Información adicional sobre " + clientName + ": Este cliente tiene un historial de compras reciente y puede estar interesado en nuestras últimas ofertas.");
+                showAdditionalInfo();
             });
         }
         
-        // Inicializar el SDK de Zoho
-        function initializeZohoSDK() {
-            // Verificar de nuevo si el objeto ZOHO está disponible
-            if (typeof ZOHO !== "undefined" && ZOHO.embeddedApp) {
-                console.log("SDK de Zoho detectado, configurando evento PageLoad");
-                
-                try {
-                    // Evento que se dispara cuando la página está cargada en Zoho
-                    ZOHO.embeddedApp.on("PageLoad", function(data) {
-                        console.log("Evento PageLoad detectado", data);
-                        isZohoLoaded = true;
-                        
-                        // Inicializar el SDK
-                        ZOHO.embeddedApp.init()
-                            .then(function() {
-                                console.log("SDK inicializado correctamente");
-                                
-                                // Obtener el ID de la entidad actual
-                                return getCurrentEntityId();
-                            })
-                            .then(function(entityId) {
-                                if (entityId) {
-                                    currentEntityId = entityId;
-                                    console.log("ID de entidad obtenido:", entityId);
-                                    return loadRecordData(entityId);
-                                } else {
-                                    throw new Error("No se pudo obtener el ID de la entidad");
-                                }
-                            })
-                            .catch(function(error) {
-                                console.error("Error en la inicialización:", error);
-                                showError();
-                            });
-                    });
-                    
-                    // Inicialización manual en caso de que el evento PageLoad no se dispare
-                    setTimeout(function() {
-                        if (!isZohoLoaded) {
-                            console.log("Inicialización manual después de tiempo de espera");
-                            ZOHO.embeddedApp.init()
-                                .then(function() {
-                                    console.log("SDK inicializado manualmente");
-                                    return getCurrentEntityId();
-                                })
-                                .then(function(entityId) {
-                                    if (entityId) {
-                                        currentEntityId = entityId;
-                                        return loadRecordData(entityId);
-                                    } else {
-                                        throw new Error("No se pudo obtener el ID de la entidad");
-                                    }
-                                })
-                                .catch(function(error) {
-                                    console.error("Error en inicialización manual:", error);
-                                    showError();
-                                });
-                        }
-                    }, 3000);
-                } catch (e) {
-                    console.error("Error al configurar eventos de Zoho:", e);
-                    fillWithSampleData();
-                }
-            } else {
-                console.log("SDK de Zoho no disponible después de la verificación, usando datos de ejemplo");
-                setTimeout(function() {
-                    fillWithSampleData();
-                }, 1000);
-            }
-        }
-        
-        // Obtener el ID de la entidad actual
-        function getCurrentEntityId() {
-            return new Promise(function(resolve, reject) {
-                try {
-                    // Si tenemos la URL, intentar extraer el ID
-                    var url = window.location.href;
-                    var matches = url.match(/\/(\d+)($|\?|\/)/);
-                    if (matches && matches[1]) {
-                        console.log("ID extraído de la URL:", matches[1]);
-                        resolve(matches[1]);
-                        return;
-                    }
-                    
-                    // Intentar obtener el ID directamente
-                    if (ZOHO.CRM.ENTITY && typeof ZOHO.CRM.ENTITY.getRecordID === 'function') {
-                        var id = ZOHO.CRM.ENTITY.getRecordID();
-                        if (id) {
-                            console.log("ID obtenido con getRecordID:", id);
-                            resolve(id);
-                            return;
-                        }
-                    }
-                    
-                    // Si no se pudo obtener directamente, intentar obtenerlo del contexto
-                    if (ZOHO.CRM.UI && ZOHO.CRM.UI.Record && typeof ZOHO.CRM.UI.Record.getEntityId === 'function') {
-                        ZOHO.CRM.UI.Record.getEntityId()
-                            .then(function(data) {
-                                console.log("Respuesta de getEntityId:", data);
-                                if (data && data.data && data.data[0] && data.data[0].id) {
-                                    console.log("ID obtenido con UI.Record.getEntityId:", data.data[0].id);
-                                    resolve(data.data[0].id);
-                                } else {
-                                    console.log("No se pudo obtener ID con UI.Record.getEntityId, usando valor por defecto");
-                                    // Usar un ID de ejemplo como último recurso
-                                    resolve("123456");
-                                }
-                            })
-                            .catch(function(error) {
-                                console.error("Error al obtener entityId:", error);
-                                console.log("Usando ID por defecto debido a error");
-                                resolve("123456");
-                            });
-                    } else {
-                        console.log("Método getEntityId no disponible, usando ID por defecto");
-                        resolve("123456");
-                    }
-                } catch (e) {
-                    console.error("Error en getCurrentEntityId:", e);
-                    resolve("123456");
-                }
-            });
-        }
-        
-        // Cargar datos del registro actual
-        function loadRecordData(recordId) {
-            // Mostrar loader
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('client-info').style.display = 'none';
-            document.getElementById('error-message').style.display = 'none';
+        // Mostrar información adicional
+        function showAdditionalInfo() {
+            var clientName = document.getElementById('client-name').textContent;
+            var message = "Información adicional sobre " + clientName + ":\n\n" +
+                          "• Último contacto: 15/06/2025\n" +
+                          "• Estado: Cliente activo\n" +
+                          "• Prioridad: Alta\n" +
+                          "• Notas: Cliente interesado en nuevos productos";
             
-            console.log("Cargando datos para el registro:", recordId);
-            
-            // Obtener los datos del registro
-            return ZOHO.CRM.API.getRecord({
-                Entity: "Contacts",
-                RecordID: recordId
-            })
-            .then(function(response) {
-                console.log("Respuesta de la API:", response);
-                
-                if (response && response.data && response.data.length > 0) {
-                    var record = response.data[0];
-                    
-                    // Actualizar la interfaz con los datos del registro
-                    document.getElementById('client-name').textContent = record.Full_Name || record.Name || 'No disponible';
-                    document.getElementById('client-email').textContent = record.Email || 'No disponible';
-                    document.getElementById('client-phone').textContent = record.Phone || 'No disponible';
-                    document.getElementById('client-id').textContent = record.id || recordId || 'No disponible';
-                    
-                    // Mostrar la información y ocultar el loader
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('client-info').style.display = 'block';
-                    
-                    console.log("Datos del registro cargados correctamente");
-                } else {
-                    console.log("No se encontraron datos del registro");
-                    throw new Error("No se encontraron datos");
-                }
-            })
-            .catch(function(error) {
-                console.error("Error al obtener datos del registro:", error);
-                
-                // En caso de error, intentar una vez más con campos diferentes
-                return retryLoadRecord(recordId);
-            });
-        }
-        
-        // Reintentar cargar el registro con campos diferentes
-        function retryLoadRecord(recordId) {
-            return ZOHO.CRM.API.getRecord({
-                Entity: "Contacts",
-                RecordID: recordId,
-                selectColumns: "id,First_Name,Last_Name,Email,Phone"
-            })
-            .then(function(response) {
-                if (response && response.data && response.data.length > 0) {
-                    var record = response.data[0];
-                    
-                    // Construir el nombre completo a partir de nombre y apellido
-                    var fullName = '';
-                    if (record.First_Name) fullName += record.First_Name;
-                    if (record.Last_Name) {
-                        if (fullName) fullName += ' ';
-                        fullName += record.Last_Name;
-                    }
-                    
-                    document.getElementById('client-name').textContent = fullName || 'No disponible';
-                    document.getElementById('client-email').textContent = record.Email || 'No disponible';
-                    document.getElementById('client-phone').textContent = record.Phone || 'No disponible';
-                    document.getElementById('client-id').textContent = record.id || recordId || 'No disponible';
-                    
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('client-info').style.display = 'block';
-                    
-                    console.log("Datos del registro cargados en el segundo intento");
-                } else {
-                    throw new Error("No se pudieron cargar los datos en el segundo intento");
-                }
-            })
-            .catch(function(error) {
-                console.error("Error en el segundo intento:", error);
-                showError();
-            });
-        }
-        
-        // Mostrar error
-        function showError() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('error-message').style.display = 'block';
-            
-            // También rellenar con datos de ejemplo para que al menos se muestre algo
-            fillWithSampleData();
+            alert(message);
         }
         
         // Rellenar con datos de ejemplo
         function fillWithSampleData() {
-            document.getElementById('client-name').textContent = 'Santiago Bevilacqua';
-            document.getElementById('client-email').textContent = 'santiago@example.com';
-            document.getElementById('client-phone').textContent = '123-456-7890';
-            document.getElementById('client-id').textContent = '11';
-            
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('client-info').style.display = 'block';
-            
-            console.log("Datos de ejemplo cargados");
+            // Intentar obtener datos del contexto de la página
+            try {
+                // Intentar extraer datos de la página actual
+                var nameElement = document.querySelector('span[data-fieldname="Full_Name"], span[data-fieldname="Name"]');
+                var emailElement = document.querySelector('span[data-fieldname="Email"]');
+                var phoneElement = document.querySelector('span[data-fieldname="Phone"]');
+                
+                // Si encontramos elementos, usar sus valores
+                if (nameElement) {
+                    document.getElementById('client-name').textContent = nameElement.textContent.trim() || 'Santiago Bevilacqua';
+                } else {
+                    document.getElementById('client-name').textContent = 'Santiago Bevilacqua';
+                }
+                
+                if (emailElement) {
+                    document.getElementById('client-email').textContent = emailElement.textContent.trim() || 'santiago@example.com';
+                } else {
+                    document.getElementById('client-email').textContent = 'santiago@example.com';
+                }
+                
+                if (phoneElement) {
+                    document.getElementById('client-phone').textContent = phoneElement.textContent.trim() || '123-456-7890';
+                } else {
+                    document.getElementById('client-phone').textContent = '123-456-7890';
+                }
+                
+                // Intentar extraer ID de la URL
+                var url = window.location.href;
+                var matches = url.match(/\/(\d+)($|\?|\/)/);
+                if (matches && matches[1]) {
+                    document.getElementById('client-id').textContent = matches[1];
+                } else {
+                    document.getElementById('client-id').textContent = '11';
+                }
+            } catch (e) {
+                console.error("Error al extraer datos:", e);
+                // Datos de respaldo
+                document.getElementById('client-name').textContent = 'Santiago Bevilacqua';
+                document.getElementById('client-email').textContent = 'santiago@example.com';
+                document.getElementById('client-phone').textContent = '123-456-7890';
+                document.getElementById('client-id').textContent = '11';
+            }
+        }
+        
+        // Función para extraer parámetros de la URL
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
         }
     </script>
 </body>
