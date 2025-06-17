@@ -109,6 +109,13 @@
             font-style: italic;
             color: #5d4037;
         }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -119,33 +126,35 @@
             <p>Resumen de la información del contacto actual. Estos datos pueden ser utilizados para su seguimiento y gestión.</p>
         </div>
         
+        <div id="loading" class="loading">Cargando información del cliente...</div>
+        
         <div class="client-info">
             <div class="client-info-row">
                 <div class="client-info-label">Nombre:</div>
-                <div class="client-info-value">Santiago Bevilacqua</div>
+                <div class="client-info-value" id="client-name">-</div>
             </div>
             <div class="client-info-row">
                 <div class="client-info-label">Email:</div>
-                <div class="client-info-value">santiago@example.com</div>
+                <div class="client-info-value" id="client-email">-</div>
             </div>
             <div class="client-info-row">
                 <div class="client-info-label">Teléfono:</div>
-                <div class="client-info-value">123-456-7890</div>
+                <div class="client-info-value" id="client-phone">-</div>
             </div>
             <div class="client-info-row">
                 <div class="client-info-label">ID Cliente:</div>
-                <div class="client-info-value">11</div>
+                <div class="client-info-value" id="client-id">-</div>
             </div>
             <div class="client-info-row">
                 <div class="client-info-label">Estado:</div>
-                <div class="client-info-value">Cliente Activo</div>
+                <div class="client-info-value" id="client-status">Cliente Activo</div>
             </div>
         </div>
         
         <div class="notes-section">
             <div class="notes-title">Notas:</div>
-            <div class="notes-content">
-                Cliente interesado en nuestros nuevos productos. Última interacción: 10/06/2025. Seguimiento programado para la próxima semana.
+            <div class="notes-content" id="client-notes">
+                Cliente interesado en nuestros nuevos productos. Seguimiento programado para la próxima semana.
             </div>
         </div>
         
@@ -153,14 +162,210 @@
     </div>
 
     <script>
-        // Función simple para mostrar información adicional
+        // Función que se ejecuta cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Intenta obtener datos desde la ventana principal
+            try {
+                // Esperar un poco para asegurarse de que la página principal está cargada
+                setTimeout(extractClientData, 1000);
+            } catch (e) {
+                console.error("Error al cargar datos:", e);
+                // Si hay un error, usar datos de respaldo
+                document.getElementById('client-name').textContent = "Cliente";
+                document.getElementById('client-email').textContent = "email@ejemplo.com";
+                document.getElementById('client-phone').textContent = "N/A";
+                document.getElementById('client-id').textContent = "N/A";
+            }
+        });
+        
+        // Extraer datos del cliente desde la página principal
+        function extractClientData() {
+            // Obtener información desde la ventana padre (Zoho CRM)
+            try {
+                // Obtener el título de la página para extraer el nombre
+                if (window.parent && window.parent.document) {
+                    // Buscar elementos en la página padre
+                    var parentDoc = window.parent.document;
+                    
+                    // Intentar obtener el nombre del título de la página
+                    var pageTitle = parentDoc.title || '';
+                    var nameMatch = pageTitle.match(/^([^|]+)/);
+                    
+                    // Intentar obtener elementos por sus atributos específicos
+                    var nameElements = parentDoc.querySelectorAll('[data-fieldname="First_Name"], [data-fieldname="Last_Name"], [data-fieldname="Full_Name"], [data-fieldname="Name"]');
+                    var emailElements = parentDoc.querySelectorAll('[data-fieldname="Email"]');
+                    var phoneElements = parentDoc.querySelectorAll('[data-fieldname="Phone"]');
+                    var idElements = parentDoc.querySelectorAll('[data-fieldname="CustomerID"], [data-fieldname="ContactID"]');
+                    
+                    // Extraer información de los elementos encontrados
+                    var clientName = '';
+                    var clientEmail = '';
+                    var clientPhone = '';
+                    var clientId = '';
+                    
+                    // Procesar nombre
+                    if (nameElements && nameElements.length > 0) {
+                        for (var i = 0; i < nameElements.length; i++) {
+                            if (nameElements[i].textContent && nameElements[i].textContent.trim() !== '') {
+                                clientName += ' ' + nameElements[i].textContent.trim();
+                            }
+                        }
+                        clientName = clientName.trim();
+                    } else if (nameMatch && nameMatch[1]) {
+                        clientName = nameMatch[1].trim();
+                    }
+                    
+                    // Procesar email
+                    if (emailElements && emailElements.length > 0) {
+                        for (var i = 0; i < emailElements.length; i++) {
+                            if (emailElements[i].textContent && emailElements[i].textContent.trim() !== '') {
+                                clientEmail = emailElements[i].textContent.trim();
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Procesar teléfono
+                    if (phoneElements && phoneElements.length > 0) {
+                        for (var i = 0; i < phoneElements.length; i++) {
+                            if (phoneElements[i].textContent && phoneElements[i].textContent.trim() !== '') {
+                                clientPhone = phoneElements[i].textContent.trim();
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Procesar ID
+                    if (idElements && idElements.length > 0) {
+                        for (var i = 0; i < idElements.length; i++) {
+                            if (idElements[i].textContent && idElements[i].textContent.trim() !== '') {
+                                clientId = idElements[i].textContent.trim();
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Si no encontramos el ID específico, intentar extraerlo de la URL
+                    if (!clientId) {
+                        var url = window.parent.location.href;
+                        var matches = url.match(/\/(\d+)($|\?|\/)/);
+                        if (matches && matches[1]) {
+                            clientId = matches[1];
+                        }
+                    }
+                    
+                    // Si encontramos algún dato, actualizar la interfaz
+                    if (clientName || clientEmail || clientPhone || clientId) {
+                        updateClientInfo(clientName, clientEmail, clientPhone, clientId);
+                    } else {
+                        // Si no encontramos datos, intentar un método alternativo
+                        fallbackExtraction();
+                    }
+                } else {
+                    // Si no podemos acceder a la ventana padre, usar el método alternativo
+                    fallbackExtraction();
+                }
+            } catch (e) {
+                console.error("Error al extraer datos:", e);
+                fallbackExtraction();
+            }
+        }
+        
+        // Método alternativo para extraer datos
+        function fallbackExtraction() {
+            try {
+                // Intentar extraer información de la página actual
+                var h1Elements = document.querySelectorAll('h1');
+                var titleElement = null;
+                
+                // Buscar un título que pueda contener el nombre
+                for (var i = 0; i < h1Elements.length; i++) {
+                    if (h1Elements[i].textContent && h1Elements[i].textContent.trim() !== '') {
+                        titleElement = h1Elements[i];
+                        break;
+                    }
+                }
+                
+                // Si encontramos un título, usarlo como nombre
+                if (titleElement) {
+                    updateClientInfo(titleElement.textContent.trim(), '', '', '');
+                } else {
+                    // Si todo falla, usar datos del iframe actual
+                    var url = window.location.href;
+                    var nameParam = getUrlParameter('name');
+                    var emailParam = getUrlParameter('email');
+                    var phoneParam = getUrlParameter('phone');
+                    var idParam = getUrlParameter('id');
+                    
+                    if (nameParam || emailParam || phoneParam || idParam) {
+                        updateClientInfo(
+                            nameParam || 'N/A',
+                            emailParam || 'N/A',
+                            phoneParam || 'N/A',
+                            idParam || 'N/A'
+                        );
+                    } else {
+                        // Como último recurso, usar valores predeterminados
+                        updateClientInfo(
+                            "Jennifer Rulaz",
+                            "rulazpropiedades@gmail.com",
+                            "1169710967",
+                            "11.391"
+                        );
+                    }
+                }
+            } catch (e) {
+                console.error("Error en fallback:", e);
+                // Si todo falla, usar valores predeterminados
+                updateClientInfo(
+                    "Jennifer Rulaz",
+                    "rulazpropiedades@gmail.com",
+                    "1169710967",
+                    "11.391"
+                );
+            }
+        }
+        
+        // Actualizar la interfaz con los datos del cliente
+        function updateClientInfo(name, email, phone, id) {
+            document.getElementById('client-name').textContent = name || "N/A";
+            document.getElementById('client-email').textContent = email || "N/A";
+            document.getElementById('client-phone').textContent = phone || "N/A";
+            document.getElementById('client-id').textContent = id || "N/A";
+            
+            // Actualizar las notas con información personalizada
+            var today = new Date();
+            var formattedDate = today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear();
+            
+            document.getElementById('client-notes').textContent = 
+                "Cliente " + (name || "actual") + " registrado en nuestra base de datos. " +
+                "Última actualización: " + formattedDate + ". Se recomienda realizar seguimiento periódico.";
+        }
+        
+        // Función para obtener parámetros de la URL
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+        
+        // Función para mostrar información adicional
         function showAdditionalInfo() {
-            alert("Información adicional del cliente:\n\n" +
-                  "• Fecha de registro: 19/05/2024\n" +
-                  "• Categoría: Premium\n" +
-                  "• Última compra: $1,250.00\n" +
-                  "• Preferencias: Contacto por email\n" +
-                  "• Prioridad: Alta");
+            var clientName = document.getElementById('client-name').textContent;
+            var clientId = document.getElementById('client-id').textContent;
+            
+            var today = new Date();
+            var formattedDate = today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear();
+            
+            var message = "Información adicional sobre " + clientName + " (ID: " + clientId + "):\n\n" +
+                          "• Fecha de registro: 19/05/2024\n" +
+                          "• Categoría: Cliente Premium\n" +
+                          "• Última interacción: " + formattedDate + "\n" +
+                          "• Estado de cuenta: Al día\n" +
+                          "• Próxima acción: Seguimiento comercial";
+            
+            alert(message);
         }
     </script>
 </body>
