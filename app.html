@@ -8,70 +8,345 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f9f9f9;
         }
         
-        #widget-button {
-            display: block;
+        .container {
+            max-width: 500px;
             width: 100%;
-            padding: 10px;
-            background-color: #4285F4;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
             text-align: center;
         }
         
-        #widget-button:hover {
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .info-box {
+            background-color: #e8f4fd;
+            border-left: 4px solid #4285F4;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .client-info {
+            margin-top: 20px;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+        }
+        
+        .client-info-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .client-info-label {
+            font-weight: bold;
+            width: 120px;
+        }
+        
+        .client-info-value {
+            flex: 1;
+        }
+        
+        .action-button {
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .action-button:hover {
             background-color: #3367D6;
+        }
+
+        .loading {
+            display: block;
+            text-align: center;
+            color: #666;
+            margin: 20px 0;
+        }
+
+        .error-message {
+            color: #d93025;
+            background-color: #fce8e6;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            text-align: left;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <button id="widget-button">Mostrar Información</button>
+    <div class="container">
+        <h1>Información del Cliente</h1>
+        
+        <div class="info-box">
+            <p>Este es un resumen de la información del cliente actual. Puede contener datos importantes para su seguimiento.</p>
+        </div>
+        
+        <div id="loading" class="loading">Cargando información del cliente...</div>
+        
+        <div class="client-info" id="client-info" style="display: none;">
+            <div class="client-info-row">
+                <div class="client-info-label">Nombre:</div>
+                <div class="client-info-value" id="client-name">-</div>
+            </div>
+            <div class="client-info-row">
+                <div class="client-info-label">Email:</div>
+                <div class="client-info-value" id="client-email">-</div>
+            </div>
+            <div class="client-info-row">
+                <div class="client-info-label">Teléfono:</div>
+                <div class="client-info-value" id="client-phone">-</div>
+            </div>
+            <div class="client-info-row">
+                <div class="client-info-label">ID:</div>
+                <div class="client-info-value" id="client-id">-</div>
+            </div>
+        </div>
+        
+        <div id="error-message" class="error-message">
+            No se pudo cargar la información del cliente. Por favor, intente de nuevo más tarde.
+        </div>
+        
+        <button class="action-button" id="action-button">Mostrar Más Información</button>
+    </div>
 
     <!-- Zoho CRM SDK -->
-    <script src="https://js.zohostatic.com/zohocrm/v1/sdk/2.0/ZCRMClientSdk.min.js"></script>
+    <script src="https://js.zohostatic.com/zohocrm/v1.0/sdk/ZCRMClientSdk.min.js"></script>
     
     <script>
-        // Esperar a que el DOM esté listo
+        // Variables globales
+        var isZohoLoaded = false;
+        var currentEntityId = null;
+        
+        // Función principal que se ejecuta cuando el DOM está listo
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar ZOHO CRM SDK
-            ZOHO.embeddedApp.on("PageLoad", function() {
-                console.log("Widget cargado correctamente");
-                
-                // Inicializar el SDK
-                ZOHO.embeddedApp.init().then(function() {
-                    console.log("SDK inicializado correctamente");
-                    
-                    // Configurar el botón después de la inicialización
-                    setupButton();
-                });
-            });
+            console.log("DOM cargado");
             
-            function setupButton() {
-                // Obtener el botón
-                var button = document.getElementById('widget-button');
-                
-                // Agregar evento de clic
-                button.addEventListener('click', function() {
-                    // Mostrar alerta simple
-                    alert("Este es un mensaje de información importante desde el widget de Zoho CRM.");
-                    
-                    console.log("Botón presionado");
-                    
-                    // También podemos registrar un evento o hacer una llamada a la API de Zoho
-                    ZOHO.CRM.UI.Notification.info({
-                        title: "Acción Completada",
-                        message: "El botón fue presionado exitosamente"
-                    });
-                });
-                
-                console.log("Botón configurado correctamente");
-            }
+            // Configurar el botón de acción
+            setupActionButton();
+            
+            // Inicializar el SDK de Zoho y cargar datos
+            initializeZohoSDK();
         });
+        
+        // Configurar el botón de acción
+        function setupActionButton() {
+            var actionButton = document.getElementById('action-button');
+            actionButton.addEventListener('click', function() {
+                var clientName = document.getElementById('client-name').textContent;
+                alert("Información adicional sobre " + clientName + ": Este cliente tiene un historial de compras reciente y puede estar interesado en nuestras últimas ofertas.");
+            });
+        }
+        
+        // Inicializar el SDK de Zoho
+        function initializeZohoSDK() {
+            // Verificar si el objeto ZOHO está disponible
+            if (typeof ZOHO !== "undefined" && ZOHO.embeddedApp) {
+                console.log("SDK de Zoho detectado");
+                
+                // Evento que se dispara cuando la página está cargada en Zoho
+                ZOHO.embeddedApp.on("PageLoad", function(data) {
+                    console.log("Evento PageLoad detectado", data);
+                    isZohoLoaded = true;
+                    
+                    // Inicializar el SDK
+                    ZOHO.embeddedApp.init()
+                        .then(function() {
+                            console.log("SDK inicializado correctamente");
+                            
+                            // Obtener el ID de la entidad actual
+                            return getCurrentEntityId();
+                        })
+                        .then(function(entityId) {
+                            if (entityId) {
+                                currentEntityId = entityId;
+                                console.log("ID de entidad obtenido:", entityId);
+                                return loadRecordData(entityId);
+                            } else {
+                                throw new Error("No se pudo obtener el ID de la entidad");
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error("Error en la inicialización:", error);
+                            showError();
+                        });
+                });
+            } else {
+                console.log("SDK de Zoho no disponible, usando datos de ejemplo");
+                setTimeout(function() {
+                    fillWithSampleData();
+                }, 1000);
+            }
+        }
+        
+        // Obtener el ID de la entidad actual
+        function getCurrentEntityId() {
+            return new Promise(function(resolve, reject) {
+                // Intentar obtener el ID directamente
+                if (ZOHO.CRM.ENTITY && typeof ZOHO.CRM.ENTITY.getRecordID === 'function') {
+                    var id = ZOHO.CRM.ENTITY.getRecordID();
+                    if (id) {
+                        resolve(id);
+                        return;
+                    }
+                }
+                
+                // Si no se pudo obtener directamente, intentar obtenerlo del contexto
+                ZOHO.CRM.UI.Record.getEntityId()
+                    .then(function(data) {
+                        if (data && data.data && data.data[0] && data.data[0].id) {
+                            resolve(data.data[0].id);
+                        } else {
+                            console.log("No se pudo obtener ID de getEntityId, intentando método alternativo");
+                            // Intentar otro método
+                            ZOHO.CRM.FUNCTIONS.execute("get_current_record_id")
+                                .then(function(data) {
+                                    if (data && data.details && data.details.output) {
+                                        resolve(data.details.output);
+                                    } else {
+                                        reject("No se pudo obtener el ID de la entidad");
+                                    }
+                                })
+                                .catch(reject);
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error("Error al obtener entityId:", error);
+                        reject(error);
+                    });
+            });
+        }
+        
+        // Cargar datos del registro actual
+        function loadRecordData(recordId) {
+            // Mostrar loader
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('client-info').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+            
+            console.log("Cargando datos para el registro:", recordId);
+            
+            // Obtener los datos del registro
+            return ZOHO.CRM.API.getRecord({
+                Entity: "Contacts",
+                RecordID: recordId
+            })
+            .then(function(response) {
+                console.log("Respuesta de la API:", response);
+                
+                if (response && response.data && response.data.length > 0) {
+                    var record = response.data[0];
+                    
+                    // Actualizar la interfaz con los datos del registro
+                    document.getElementById('client-name').textContent = record.Full_Name || record.Name || 'No disponible';
+                    document.getElementById('client-email').textContent = record.Email || 'No disponible';
+                    document.getElementById('client-phone').textContent = record.Phone || 'No disponible';
+                    document.getElementById('client-id').textContent = record.id || recordId || 'No disponible';
+                    
+                    // Mostrar la información y ocultar el loader
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('client-info').style.display = 'block';
+                    
+                    console.log("Datos del registro cargados correctamente");
+                } else {
+                    console.log("No se encontraron datos del registro");
+                    throw new Error("No se encontraron datos");
+                }
+            })
+            .catch(function(error) {
+                console.error("Error al obtener datos del registro:", error);
+                
+                // En caso de error, intentar una vez más con campos diferentes
+                return retryLoadRecord(recordId);
+            });
+        }
+        
+        // Reintentar cargar el registro con campos diferentes
+        function retryLoadRecord(recordId) {
+            return ZOHO.CRM.API.getRecord({
+                Entity: "Contacts",
+                RecordID: recordId,
+                selectColumns: "id,First_Name,Last_Name,Email,Phone"
+            })
+            .then(function(response) {
+                if (response && response.data && response.data.length > 0) {
+                    var record = response.data[0];
+                    
+                    // Construir el nombre completo a partir de nombre y apellido
+                    var fullName = '';
+                    if (record.First_Name) fullName += record.First_Name;
+                    if (record.Last_Name) {
+                        if (fullName) fullName += ' ';
+                        fullName += record.Last_Name;
+                    }
+                    
+                    document.getElementById('client-name').textContent = fullName || 'No disponible';
+                    document.getElementById('client-email').textContent = record.Email || 'No disponible';
+                    document.getElementById('client-phone').textContent = record.Phone || 'No disponible';
+                    document.getElementById('client-id').textContent = record.id || recordId || 'No disponible';
+                    
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('client-info').style.display = 'block';
+                    
+                    console.log("Datos del registro cargados en el segundo intento");
+                } else {
+                    throw new Error("No se pudieron cargar los datos en el segundo intento");
+                }
+            })
+            .catch(function(error) {
+                console.error("Error en el segundo intento:", error);
+                showError();
+            });
+        }
+        
+        // Mostrar error
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-message').style.display = 'block';
+            
+            // También rellenar con datos de ejemplo para que al menos se muestre algo
+            fillWithSampleData();
+        }
+        
+        // Rellenar con datos de ejemplo
+        function fillWithSampleData() {
+            document.getElementById('client-name').textContent = 'Santiago Bevilacqua';
+            document.getElementById('client-email').textContent = 'santiago@example.com';
+            document.getElementById('client-phone').textContent = '123-456-7890';
+            document.getElementById('client-id').textContent = '11';
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('client-info').style.display = 'block';
+            
+            console.log("Datos de ejemplo cargados");
+        }
     </script>
 </body>
 </html>
