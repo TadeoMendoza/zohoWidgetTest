@@ -1,13 +1,13 @@
 {
-  "name": "TEST",
-  "version": "1.0.0",
-  "description": "Información del Cliente",
+  "name": "InfoCliente",
+  "version": "1.0",
+  "description": "Información del cliente en Zoho CRM",
   "modules": {
     "widgets": [
       {
         "location": "detailview",
-        "name": "Información del Cliente",
-        "url": "app.html"
+        "name": "Info Cliente",
+        "url": "index.html"
       }
     ]
   },
