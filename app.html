@@ -2,13 +2,12 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Información del Cliente</title>
+    <title>Cliente</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 15px;
-            background-color: #f9f9f9;
         }
         
         .container {
@@ -16,104 +15,55 @@
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             padding: 20px;
-            margin-bottom: 15px;
         }
         
         h2 {
             color: #333;
             margin-top: 0;
-            margin-bottom: 15px;
             font-size: 18px;
             text-align: center;
         }
         
-        .info-box {
-            background-color: #e8f4fd;
-            border-left: 4px solid #4285F4;
-            padding: 10px;
-            margin-bottom: 15px;
-        }
-        
-        .info-box p {
-            margin: 0;
-            color: #555;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-        
-        .client-info {
-            background-color: #f5f5f5;
-            padding: 15px;
-            border-radius: 5px;
-        }
-        
-        .client-row {
+        .info-row {
             display: flex;
             margin-bottom: 8px;
             border-bottom: 1px solid #eee;
             padding-bottom: 8px;
         }
         
-        .client-row:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-        
-        .client-label {
+        .info-label {
             font-weight: bold;
             width: 100px;
-            color: #555;
         }
         
-        .client-value {
+        .info-value {
             flex: 1;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 10px;
+            color: #666;
         }
         
         .btn {
             background-color: #4285F4;
             color: white;
             border: none;
-            padding: 10px 0;
+            padding: 10px;
             border-radius: 4px;
             cursor: pointer;
             width: 100%;
-            font-size: 14px;
             margin-top: 10px;
         }
         
-        .btn:hover {
-            background-color: #3367D6;
-        }
-        
-        .notes {
-            background-color: #fffde7;
-            border-left: 3px solid #ffd54f;
+        #log {
+            margin-top: 20px;
             padding: 10px;
-            font-style: italic;
-            color: #5d4037;
-            margin-top: 15px;
-        }
-        
-        .error-message {
-            background-color: #ffebee;
-            border-left: 3px solid #f44336;
-            padding: 10px;
-            color: #d32f2f;
-            margin-top: 15px;
-            display: none;
-        }
-        
-        .status-message {
-            padding: 10px;
-            margin-top: 15px;
-            background-color: #f1f8e9;
-            border-left: 3px solid #7cb342;
-            display: none;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
         }
     </style>
 </head>
@@ -121,265 +71,132 @@
     <div class="container">
         <h2>Información del Cliente</h2>
         
-        <div class="info-box">
-            <p>Información del cliente actual en Zoho CRM.</p>
-        </div>
+        <div id="loading" class="loading">Cargando datos...</div>
         
-        <div id="loading" class="loading">
-            Cargando información del cliente...
-        </div>
-        
-        <div id="client-info" class="client-info" style="display: none;">
-            <div class="client-row">
-                <div class="client-label">Nombre:</div>
-                <div class="client-value" id="client-name">-</div>
+        <div id="client-info" style="display: none;">
+            <div class="info-row">
+                <div class="info-label">ID:</div>
+                <div class="info-value" id="client-id">-</div>
             </div>
-            <div class="client-row">
-                <div class="client-label">Email:</div>
-                <div class="client-value" id="client-email">-</div>
+            <div class="info-row">
+                <div class="info-label">Módulo:</div>
+                <div class="info-value" id="client-module">-</div>
             </div>
-            <div class="client-row">
-                <div class="client-label">Teléfono:</div>
-                <div class="client-value" id="client-phone">-</div>
+            <div class="info-row">
+                <div class="info-label">Nombre:</div>
+                <div class="info-value" id="client-name">-</div>
             </div>
-            <div class="client-row">
-                <div class="client-label">ID Cliente:</div>
-                <div class="client-value" id="client-id">-</div>
+            <div class="info-row">
+                <div class="info-label">Email:</div>
+                <div class="info-value" id="client-email">-</div>
             </div>
-            <div class="client-row">
-                <div class="client-label">Empresa:</div>
-                <div class="client-value" id="client-company">-</div>
+            <div class="info-row">
+                <div class="info-label">Teléfono:</div>
+                <div class="info-value" id="client-phone">-</div>
             </div>
         </div>
         
-        <div id="client-notes" class="notes" style="display: none;">
-            Información adicional no disponible.
-        </div>
+        <button id="details-btn" class="btn" style="display: none;">Ver detalles</button>
         
-        <div id="error-message" class="error-message">
-            No se pudo cargar la información del cliente. Por favor, intente nuevamente más tarde.
-        </div>
-        
-        <div id="status-message" class="status-message">
-            Estado: <span id="status-text"></span>
-        </div>
-        
-        <button class="btn" id="info-button" onclick="showAdditionalInfo()" style="display: none;">
-            Ver Detalles Adicionales
-        </button>
+        <div id="log"></div>
     </div>
-    
-    <!-- Zoho Embedded App Framework - URL CORRECTA SEGÚN PRUEBAS -->
+
     <script src="https://live.zwidgets.com/js-sdk/1.0.5/ZohoEmbededAppSDK.min.js"></script>
     
     <script>
-        // Variables globales
-        var clientData = {};
-        
-        // Registrar un mensaje en la consola y mostrar en la interfaz
-        function log(message, isError) {
+        // Función para mostrar mensajes de log
+        function log(message) {
             console.log(message);
-            
-            var statusElement = document.getElementById('status-message');
-            var statusText = document.getElementById('status-text');
-            
-            statusElement.style.display = 'block';
-            
-            if (isError) {
-                statusElement.style.backgroundColor = '#ffebee';
-                statusElement.style.borderLeftColor = '#f44336';
-            } else {
-                statusElement.style.backgroundColor = '#f1f8e9';
-                statusElement.style.borderLeftColor = '#7cb342';
-            }
-            
-            statusText.textContent = message;
+            document.getElementById('log').innerHTML += message + '<br>';
         }
         
-        // Inicializar la aplicación cuando el DOM esté listo
+        // Al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar el SDK de Zoho
-            initializeApp();
-        });
-        
-        // Inicializar la aplicación con el SDK de Zoho
-        function initializeApp() {
-            try {
-                log("Inicializando la aplicación...");
+            log('Página cargada');
+            
+            // Verificar si ZOHO está definido
+            if (typeof ZOHO === 'undefined') {
+                log('Error: ZOHO no está definido');
+                return;
+            }
+            
+            log('ZOHO está disponible');
+            
+            // Registrar el evento PageLoad - SIN USAR getRecordInfo
+            ZOHO.embeddedApp.on('PageLoad', function(data) {
+                log('Evento PageLoad recibido: ' + JSON.stringify(data));
                 
-                // Verificar si ZOHO está definido
-                if (typeof ZOHO === "undefined") {
-                    log("Error: SDK de Zoho no está disponible", true);
-                    showError();
-                    return;
-                }
-                
-                // Registrar el evento PageLoad
-                ZOHO.embeddedApp.on("PageLoad", function(entity) {
-                    log("Evento PageLoad recibido");
+                // Verificar si tenemos el ID del registro
+                if (data && data.EntityId && data.EntityId.length > 0) {
+                    var recordId = data.EntityId[0];
+                    var module = data.Entity;
                     
-                    // Verificar si tenemos información de la entidad
-                    if (entity && entity.EntityId && entity.EntityId.length > 0 && entity.Entity) {
-                        var entityId = entity.EntityId[0];
-                        var entityName = entity.Entity;
+                    log('ID del registro: ' + recordId);
+                    log('Módulo: ' + module);
+                    
+                    // Actualizar información básica
+                    document.getElementById('client-id').textContent = recordId;
+                    document.getElementById('client-module').textContent = module;
+                    
+                    // Obtener datos completos del registro
+                    ZOHO.CRM.API.getRecord({
+                        Entity: module,
+                        RecordID: recordId
+                    })
+                    .then(function(response) {
+                        log('Datos recibidos: ' + JSON.stringify(response).substring(0, 100) + '...');
                         
-                        log("Obteniendo información del " + entityName + " con ID: " + entityId);
-                        
-                        // Obtener los detalles del registro
-                        ZOHO.CRM.API.getRecord({
-                            Entity: entityName, 
-                            RecordID: entityId
-                        })
-                        .then(function(response) {
-                            if (response && response.data && response.data.length > 0) {
-                                log("Datos recibidos correctamente");
-                                
-                                // Procesar y mostrar los datos del cliente
-                                processClientData(response.data[0]);
-                            } else {
-                                log("No se encontraron datos en la respuesta", true);
-                                showError();
+                        if (response && response.data && response.data.length > 0) {
+                            var record = response.data[0];
+                            
+                            // Mostrar datos del cliente
+                            if (record.Full_Name) document.getElementById('client-name').textContent = record.Full_Name;
+                            else if (record.Name) document.getElementById('client-name').textContent = record.Name;
+                            else if (record.Last_Name) {
+                                var name = record.Last_Name;
+                                if (record.First_Name) name = record.First_Name + ' ' + name;
+                                document.getElementById('client-name').textContent = name;
                             }
-                        })
-                        .catch(function(error) {
-                            log("Error al obtener datos: " + error, true);
-                            showError();
-                        });
-                    } else {
-                        log("No se recibió información de la entidad", true);
-                        showError();
-                    }
-                });
-                
-                // Inicializar el SDK
-                ZOHO.embeddedApp.init()
-                    .then(function() {
-                        log("SDK inicializado correctamente");
+                            
+                            if (record.Email) document.getElementById('client-email').textContent = record.Email;
+                            if (record.Phone) document.getElementById('client-phone').textContent = record.Phone;
+                            else if (record.Mobile) document.getElementById('client-phone').textContent = record.Mobile;
+                            
+                            // Mostrar información y botón
+                            document.getElementById('loading').style.display = 'none';
+                            document.getElementById('client-info').style.display = 'block';
+                            document.getElementById('details-btn').style.display = 'block';
+                            
+                            log('Datos mostrados correctamente');
+                        } else {
+                            log('No se encontraron datos en la respuesta');
+                        }
                     })
                     .catch(function(error) {
-                        log("Error al inicializar SDK: " + error, true);
-                        showError();
+                        log('Error al obtener datos: ' + error);
                     });
-                
-            } catch (error) {
-                log("Error al configurar la aplicación: " + error, true);
-                showError();
-            }
-        }
-        
-        // Procesar los datos del cliente
-        function processClientData(data) {
-            // Registrar todas las propiedades disponibles para depuración
-            console.log("Propiedades disponibles:", Object.keys(data));
-            
-            // Extraer información del cliente
-            var clientInfo = {
-                name: 'No disponible',
-                email: 'No disponible',
-                phone: 'No disponible',
-                id: 'No disponible',
-                company: 'No disponible'
-            };
-            
-            // Nombre (diferentes posibles campos)
-            if (data.Full_Name) clientInfo.name = data.Full_Name;
-            else if (data.Name) clientInfo.name = data.Name;
-            else if (data.Account_Name) {
-                if (typeof data.Account_Name === 'object' && data.Account_Name.name) {
-                    clientInfo.name = data.Account_Name.name;
                 } else {
-                    clientInfo.name = data.Account_Name;
+                    log('No se recibió ID del registro');
                 }
-            }
-            else if (data.Last_Name) {
-                clientInfo.name = data.Last_Name;
-                if (data.First_Name) clientInfo.name = data.First_Name + ' ' + clientInfo.name;
-            }
+            });
             
-            // Email
-            if (data.Email) clientInfo.email = data.Email;
-            else if (data.email) clientInfo.email = data.email;
+            // Inicializar ZOHO SDK
+            log('Intentando inicializar ZOHO SDK...');
+            ZOHO.embeddedApp.init()
+                .then(function() {
+                    log('SDK inicializado correctamente');
+                })
+                .catch(function(error) {
+                    log('Error al inicializar SDK: ' + error);
+                });
             
-            // Teléfono
-            if (data.Phone) clientInfo.phone = data.Phone;
-            else if (data.phone) clientInfo.phone = data.phone;
-            else if (data.Mobile) clientInfo.phone = data.Mobile;
-            
-            // ID
-            if (data.id) clientInfo.id = data.id;
-            
-            // Empresa
-            if (data.Account_Name) {
-                if (typeof data.Account_Name === 'object' && data.Account_Name.name) {
-                    clientInfo.company = data.Account_Name.name;
-                } else {
-                    clientInfo.company = data.Account_Name;
-                }
-            } else if (data.Company) clientInfo.company = data.Company;
-            
-            // Guardar datos para uso posterior
-            clientData = clientInfo;
-            
-            // Actualizar la interfaz
-            updateUI(clientInfo);
-        }
-        
-        // Actualizar la interfaz con los datos del cliente
-        function updateUI(clientInfo) {
-            // Ocultar indicador de carga y mensaje de error
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('error-message').style.display = 'none';
-            
-            // Mostrar información del cliente
-            document.getElementById('client-info').style.display = 'block';
-            document.getElementById('client-notes').style.display = 'block';
-            document.getElementById('info-button').style.display = 'block';
-            
-            // Actualizar campos
-            document.getElementById('client-name').textContent = clientInfo.name;
-            document.getElementById('client-email').textContent = clientInfo.email;
-            document.getElementById('client-phone').textContent = clientInfo.phone;
-            document.getElementById('client-id').textContent = clientInfo.id;
-            document.getElementById('client-company').textContent = clientInfo.company;
-            
-            // Actualizar notas
-            var today = new Date();
-            var formattedDate = today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear();
-            document.getElementById('client-notes').textContent = 
-                "Cliente: " + clientInfo.name + ". Información consultada el " + formattedDate + ". Este cliente requiere seguimiento periódico.";
-            
-            // Actualizar mensaje de estado
-            log("Información del cliente cargada correctamente");
-        }
-        
-        // Mostrar error
-        function showError() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('error-message').style.display = 'block';
-        }
-        
-        // Función para mostrar información adicional
-        function showAdditionalInfo() {
-            var name = clientData.name || 'Cliente';
-            var company = clientData.company || 'No disponible';
-            var email = clientData.email || 'No disponible';
-            var phone = clientData.phone || 'No disponible';
-            
-            var today = new Date();
-            var formattedDate = today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear();
-            
-            var message = "Información adicional sobre " + name + ":\n\n" +
-                          "• Empresa: " + company + "\n" +
-                          "• Email: " + email + "\n" +
-                          "• Teléfono: " + phone + "\n" +
-                          "• Fecha de consulta: " + formattedDate + "\n" +
-                          "• Estado: Cliente activo\n" +
-                          "• Categoría: Premium\n" +
-                          "• Última interacción: " + formattedDate + "\n" +
-                          "• Próxima acción: Seguimiento comercial";
-            
-            alert(message);
-        }
+            // Configurar botón de detalles
+            document.getElementById('details-btn').addEventListener('click', function() {
+                alert('Cliente: ' + document.getElementById('client-name').textContent + 
+                      '\nEmail: ' + document.getElementById('client-email').textContent + 
+                      '\nTeléfono: ' + document.getElementById('client-phone').textContent);
+            });
+        });
     </script>
 </body>
 </html>
