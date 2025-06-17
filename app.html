@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEST Widget</title>
+    <title>Información del Cliente</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             background-color: #f9f9f9;
         }
         
@@ -22,19 +19,14 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             padding: 20px;
-            text-align: center;
+            margin: 0 auto;
         }
         
         h1 {
             color: #333;
             font-size: 24px;
             margin-bottom: 20px;
-        }
-        
-        p {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 20px;
+            text-align: center;
         }
         
         .info-box {
@@ -42,29 +34,43 @@
             border-left: 4px solid #4285F4;
             padding: 15px;
             margin-bottom: 20px;
-            text-align: left;
+        }
+        
+        .info-box p {
+            color: #666;
+            line-height: 1.6;
+            margin: 0;
         }
         
         .client-info {
-            margin-top: 20px;
             background-color: #f5f5f5;
             padding: 15px;
             border-radius: 5px;
-            text-align: left;
+            margin-bottom: 20px;
         }
         
         .client-info-row {
             display: flex;
             margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        
+        .client-info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
         }
         
         .client-info-label {
             font-weight: bold;
             width: 120px;
+            color: #555;
         }
         
         .client-info-value {
             flex: 1;
+            color: #333;
         }
         
         .action-button {
@@ -75,29 +81,33 @@
             border-radius: 4px;
             font-size: 16px;
             cursor: pointer;
-            margin-top: 10px;
+            width: 100%;
             transition: background-color 0.3s;
         }
         
         .action-button:hover {
             background-color: #3367D6;
         }
-
-        .loading {
-            display: block;
-            text-align: center;
-            color: #666;
-            margin: 20px 0;
+        
+        .notes-section {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
         }
-
-        .error-message {
-            color: #d93025;
-            background-color: #fce8e6;
+        
+        .notes-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .notes-content {
+            background-color: #fffde7;
             padding: 10px;
             border-radius: 4px;
-            margin-top: 10px;
-            text-align: left;
-            display: none;
+            border-left: 3px solid #ffd54f;
+            font-style: italic;
+            color: #5d4037;
         }
     </style>
 </head>
@@ -106,128 +116,51 @@
         <h1>Información del Cliente</h1>
         
         <div class="info-box">
-            <p>Este es un resumen de la información del cliente actual. Puede contener datos importantes para su seguimiento.</p>
+            <p>Resumen de la información del contacto actual. Estos datos pueden ser utilizados para su seguimiento y gestión.</p>
         </div>
         
-        <div id="loading" class="loading">Cargando información del cliente...</div>
-        
-        <div class="client-info" id="client-info" style="display: none;">
+        <div class="client-info">
             <div class="client-info-row">
                 <div class="client-info-label">Nombre:</div>
-                <div class="client-info-value" id="client-name">-</div>
+                <div class="client-info-value">Santiago Bevilacqua</div>
             </div>
             <div class="client-info-row">
                 <div class="client-info-label">Email:</div>
-                <div class="client-info-value" id="client-email">-</div>
+                <div class="client-info-value">santiago@example.com</div>
             </div>
             <div class="client-info-row">
                 <div class="client-info-label">Teléfono:</div>
-                <div class="client-info-value" id="client-phone">-</div>
+                <div class="client-info-value">123-456-7890</div>
             </div>
             <div class="client-info-row">
-                <div class="client-info-label">ID:</div>
-                <div class="client-info-value" id="client-id">-</div>
+                <div class="client-info-label">ID Cliente:</div>
+                <div class="client-info-value">11</div>
+            </div>
+            <div class="client-info-row">
+                <div class="client-info-label">Estado:</div>
+                <div class="client-info-value">Cliente Activo</div>
             </div>
         </div>
         
-        <div id="error-message" class="error-message">
-            No se pudo cargar la información del cliente. Por favor, intente de nuevo más tarde.
+        <div class="notes-section">
+            <div class="notes-title">Notas:</div>
+            <div class="notes-content">
+                Cliente interesado en nuestros nuevos productos. Última interacción: 10/06/2025. Seguimiento programado para la próxima semana.
+            </div>
         </div>
         
-        <button class="action-button" id="action-button">Mostrar Más Información</button>
+        <button class="action-button" id="action-button" onclick="showAdditionalInfo()">Ver Detalles Adicionales</button>
     </div>
-    
+
     <script>
-        // Función principal que se ejecuta cuando el DOM está listo
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("DOM cargado");
-            
-            // Configurar el botón de acción
-            setupActionButton();
-            
-            // Intentar obtener datos del cliente actual
-            setTimeout(function() {
-                // Simular la carga de datos
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('client-info').style.display = 'block';
-                
-                // Llenar con datos de ejemplo
-                fillWithSampleData();
-            }, 1000);
-        });
-        
-        // Configurar el botón de acción
-        function setupActionButton() {
-            var actionButton = document.getElementById('action-button');
-            actionButton.addEventListener('click', function() {
-                showAdditionalInfo();
-            });
-        }
-        
-        // Mostrar información adicional
+        // Función simple para mostrar información adicional
         function showAdditionalInfo() {
-            var clientName = document.getElementById('client-name').textContent;
-            var message = "Información adicional sobre " + clientName + ":\n\n" +
-                          "• Último contacto: 15/06/2025\n" +
-                          "• Estado: Cliente activo\n" +
-                          "• Prioridad: Alta\n" +
-                          "• Notas: Cliente interesado en nuevos productos";
-            
-            alert(message);
-        }
-        
-        // Rellenar con datos de ejemplo
-        function fillWithSampleData() {
-            // Intentar obtener datos del contexto de la página
-            try {
-                // Intentar extraer datos de la página actual
-                var nameElement = document.querySelector('span[data-fieldname="Full_Name"], span[data-fieldname="Name"]');
-                var emailElement = document.querySelector('span[data-fieldname="Email"]');
-                var phoneElement = document.querySelector('span[data-fieldname="Phone"]');
-                
-                // Si encontramos elementos, usar sus valores
-                if (nameElement) {
-                    document.getElementById('client-name').textContent = nameElement.textContent.trim() || 'Santiago Bevilacqua';
-                } else {
-                    document.getElementById('client-name').textContent = 'Santiago Bevilacqua';
-                }
-                
-                if (emailElement) {
-                    document.getElementById('client-email').textContent = emailElement.textContent.trim() || 'santiago@example.com';
-                } else {
-                    document.getElementById('client-email').textContent = 'santiago@example.com';
-                }
-                
-                if (phoneElement) {
-                    document.getElementById('client-phone').textContent = phoneElement.textContent.trim() || '123-456-7890';
-                } else {
-                    document.getElementById('client-phone').textContent = '123-456-7890';
-                }
-                
-                // Intentar extraer ID de la URL
-                var url = window.location.href;
-                var matches = url.match(/\/(\d+)($|\?|\/)/);
-                if (matches && matches[1]) {
-                    document.getElementById('client-id').textContent = matches[1];
-                } else {
-                    document.getElementById('client-id').textContent = '11';
-                }
-            } catch (e) {
-                console.error("Error al extraer datos:", e);
-                // Datos de respaldo
-                document.getElementById('client-name').textContent = 'Santiago Bevilacqua';
-                document.getElementById('client-email').textContent = 'santiago@example.com';
-                document.getElementById('client-phone').textContent = '123-456-7890';
-                document.getElementById('client-id').textContent = '11';
-            }
-        }
-        
-        // Función para extraer parámetros de la URL
-        function getUrlParameter(name) {
-            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-            var results = regex.exec(location.search);
-            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+            alert("Información adicional del cliente:\n\n" +
+                  "• Fecha de registro: 19/05/2024\n" +
+                  "• Categoría: Premium\n" +
+                  "• Última compra: $1,250.00\n" +
+                  "• Preferencias: Contacto por email\n" +
+                  "• Prioridad: Alta");
         }
     </script>
 </body>
