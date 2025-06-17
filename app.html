@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Diagnóstico de Widget Zoho</title>
+    <title>Información del Cliente</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,365 +22,363 @@
         h2 {
             color: #333;
             margin-top: 0;
-            font-size: 20px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
         }
         
-        .status-box {
+        .info-box {
+            background-color: #e8f4fd;
+            border-left: 4px solid #4285F4;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .info-box p {
+            margin: 0;
+            color: #555;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .client-info {
+            background-color: #f5f5f5;
             padding: 15px;
-            margin: 15px 0;
             border-radius: 5px;
         }
         
-        .status-ok {
-            background-color: #e8f5e9;
-            border-left: 4px solid #4caf50;
+        .client-row {
+            display: flex;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
         }
         
-        .status-warning {
-            background-color: #fff8e1;
-            border-left: 4px solid #ffc107;
+        .client-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
         }
         
-        .status-error {
-            background-color: #ffebee;
-            border-left: 4px solid #f44336;
+        .client-label {
+            font-weight: bold;
+            width: 100px;
+            color: #555;
+        }
+        
+        .client-value {
+            flex: 1;
         }
         
         .btn {
             background-color: #4285F4;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 10px 0;
             border-radius: 4px;
             cursor: pointer;
-            margin: 5px 0;
-        }
-        
-        .btn-alt {
-            background-color: #9e9e9e;
-        }
-        
-        .btn:hover {
-            opacity: 0.9;
-        }
-        
-        .log-container {
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 12px;
-            height: 200px;
-            overflow-y: auto;
+            width: 100%;
+            font-size: 14px;
             margin-top: 10px;
         }
         
-        .log-entry {
-            margin: 5px 0;
-            padding: 5px;
-            border-bottom: 1px solid #eee;
+        .btn:hover {
+            background-color: #3367D6;
         }
         
-        .log-info {
-            color: #333;
+        .notes {
+            background-color: #fffde7;
+            border-left: 3px solid #ffd54f;
+            padding: 10px;
+            font-style: italic;
+            color: #5d4037;
+            margin-top: 15px;
         }
         
-        .log-warning {
-            color: #f57c00;
-        }
-        
-        .log-error {
+        .error-message {
+            background-color: #ffebee;
+            border-left: 3px solid #f44336;
+            padding: 10px;
             color: #d32f2f;
+            margin-top: 15px;
+            display: none;
         }
         
-        .log-success {
-            color: #388e3c;
+        .status-message {
+            padding: 10px;
+            margin-top: 15px;
+            background-color: #f1f8e9;
+            border-left: 3px solid #7cb342;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Diagnóstico de Widget para Zoho CRM</h2>
+        <h2>Información del Cliente</h2>
         
-        <div id="sdk-status" class="status-box status-warning">
-            Verificando disponibilidad del SDK de Zoho...
+        <div class="info-box">
+            <p>Información del cliente actual en Zoho CRM.</p>
         </div>
         
-        <div>
-            <button class="btn" onclick="checkZohoSDK()">Verificar SDK de Zoho</button>
-            <button class="btn" onclick="attemptInitialize()">Intentar Inicialización</button>
-            <button class="btn btn-alt" onclick="clearLog()">Limpiar Registro</button>
+        <div id="loading" class="loading">
+            Cargando información del cliente...
         </div>
         
-        <h3>Registro de Eventos</h3>
-        <div id="log-container" class="log-container"></div>
-        
-        <div style="margin-top: 20px;">
-            <button class="btn" onclick="showEnvironmentInfo()">Mostrar Información del Entorno</button>
+        <div id="client-info" class="client-info" style="display: none;">
+            <div class="client-row">
+                <div class="client-label">Nombre:</div>
+                <div class="client-value" id="client-name">-</div>
+            </div>
+            <div class="client-row">
+                <div class="client-label">Email:</div>
+                <div class="client-value" id="client-email">-</div>
+            </div>
+            <div class="client-row">
+                <div class="client-label">Teléfono:</div>
+                <div class="client-value" id="client-phone">-</div>
+            </div>
+            <div class="client-row">
+                <div class="client-label">ID Cliente:</div>
+                <div class="client-value" id="client-id">-</div>
+            </div>
+            <div class="client-row">
+                <div class="client-label">Empresa:</div>
+                <div class="client-value" id="client-company">-</div>
+            </div>
         </div>
+        
+        <div id="client-notes" class="notes" style="display: none;">
+            Información adicional no disponible.
+        </div>
+        
+        <div id="error-message" class="error-message">
+            No se pudo cargar la información del cliente. Por favor, intente nuevamente más tarde.
+        </div>
+        
+        <div id="status-message" class="status-message">
+            Estado: <span id="status-text"></span>
+        </div>
+        
+        <button class="btn" id="info-button" onclick="showAdditionalInfo()" style="display: none;">
+            Ver Detalles Adicionales
+        </button>
     </div>
     
-    <!-- Probar con tres URLs diferentes del SDK de Zoho -->
+    <!-- Zoho Embedded App Framework - URL CORRECTA SEGÚN PRUEBAS -->
+    <script src="https://live.zwidgets.com/js-sdk/1.0.5/ZohoEmbededAppSDK.min.js"></script>
+    
     <script>
         // Variables globales
-        var sdkLoaded = false;
-        var sdkInitialized = false;
+        var clientData = {};
         
-        // Función que se ejecuta cuando se carga la página
-        document.addEventListener('DOMContentLoaded', function() {
-            logInfo("Página cargada. Iniciando diagnóstico...");
+        // Registrar un mensaje en la consola y mostrar en la interfaz
+        function log(message, isError) {
+            console.log(message);
             
-            // Verificar si ZOHO ya está definido (por si se cargó antes)
-            if (typeof ZOHO !== "undefined") {
-                sdkLoaded = true;
-                logSuccess("SDK de Zoho ya está cargado en la página");
-                updateSDKStatus(true);
+            var statusElement = document.getElementById('status-message');
+            var statusText = document.getElementById('status-text');
+            
+            statusElement.style.display = 'block';
+            
+            if (isError) {
+                statusElement.style.backgroundColor = '#ffebee';
+                statusElement.style.borderLeftColor = '#f44336';
             } else {
-                logWarning("SDK de Zoho no detectado inicialmente");
-                
-                // Intentar cargar el SDK de Zoho (3 URLs diferentes)
-                loadZohoSDK();
+                statusElement.style.backgroundColor = '#f1f8e9';
+                statusElement.style.borderLeftColor = '#7cb342';
             }
             
-            // Registrar información de la URL
-            logInfo("URL actual: " + window.location.href);
-            logInfo("Referrer: " + document.referrer);
+            statusText.textContent = message;
+        }
+        
+        // Inicializar la aplicación cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar el SDK de Zoho
+            initializeApp();
         });
         
-        // Cargar el SDK de Zoho
-        function loadZohoSDK() {
-            logInfo("Intentando cargar el SDK de Zoho...");
-            
-            // Opción 1: URL mencionada en la documentación compartida
-            loadScript("https://live.zwidgets.com/js-sdk/1.0.5/ZohoEmbededAppSDK.min.js", function() {
-                if (typeof ZOHO !== "undefined") {
-                    sdkLoaded = true;
-                    logSuccess("SDK de Zoho cargado exitosamente (Opción 1)");
-                    updateSDKStatus(true);
-                } else {
-                    logError("SDK de Zoho no se cargó correctamente (Opción 1)");
-                    
-                    // Opción 2: URL alternativa
-                    loadScript("https://js.zohostatic.com/zohocrm/v2.0/sdk/3.0.0/js/ZohoCrmInc.min.js", function() {
-                        if (typeof ZOHO !== "undefined") {
-                            sdkLoaded = true;
-                            logSuccess("SDK de Zoho cargado exitosamente (Opción 2)");
-                            updateSDKStatus(true);
-                        } else {
-                            logError("SDK de Zoho no se cargó correctamente (Opción 2)");
-                            
-                            // Opción 3: URL mencionada en tu código
-                            loadScript("https://js.zohostatic.com/zohocrm/v1.0/sdk/ZCRMClientSdk.min.js", function() {
-                                if (typeof ZOHO !== "undefined") {
-                                    sdkLoaded = true;
-                                    logSuccess("SDK de Zoho cargado exitosamente (Opción 3)");
-                                    updateSDKStatus(true);
-                                } else {
-                                    logError("No se pudo cargar el SDK de Zoho después de intentar 3 URLs diferentes");
-                                    updateSDKStatus(false);
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-        }
-        
-        // Función para cargar script dinámicamente
-        function loadScript(url, callback) {
-            var script = document.createElement("script");
-            script.type = "text/javascript";
-            
-            if (script.readyState) {  // IE
-                script.onreadystatechange = function() {
-                    if (script.readyState === "loaded" || script.readyState === "complete") {
-                        script.onreadystatechange = null;
-                        setTimeout(callback, 500);
-                    }
-                };
-            } else {  // Otros navegadores
-                script.onload = function() {
-                    setTimeout(callback, 500);
-                };
-            }
-            
-            script.onerror = function() {
-                logError("Error al cargar script: " + url);
-                callback();
-            };
-            
-            script.src = url;
-            document.getElementsByTagName("head")[0].appendChild(script);
-            logInfo("Intentando cargar script: " + url);
-        }
-        
-        // Verificar SDK de Zoho
-        function checkZohoSDK() {
-            if (typeof ZOHO !== "undefined") {
-                logSuccess("SDK de Zoho está disponible");
-                sdkLoaded = true;
-                updateSDKStatus(true);
-                
-                // Verificar propiedades disponibles
-                var properties = [];
-                for (var prop in ZOHO) {
-                    properties.push(prop);
-                }
-                
-                logInfo("Propiedades disponibles en ZOHO: " + properties.join(", "));
-                
-                if (ZOHO.embeddedApp) {
-                    logSuccess("ZOHO.embeddedApp está disponible");
-                } else {
-                    logError("ZOHO.embeddedApp no está disponible");
-                }
-                
-                if (ZOHO.CRM) {
-                    logSuccess("ZOHO.CRM está disponible");
-                } else {
-                    logError("ZOHO.CRM no está disponible");
-                }
-            } else {
-                logError("SDK de Zoho no está disponible");
-                sdkLoaded = false;
-                updateSDKStatus(false);
-            }
-        }
-        
-        // Intentar inicializar el SDK
-        function attemptInitialize() {
-            if (!sdkLoaded) {
-                logError("No se puede inicializar porque el SDK no está cargado");
-                return;
-            }
-            
+        // Inicializar la aplicación con el SDK de Zoho
+        function initializeApp() {
             try {
-                logInfo("Intentando registrar evento PageLoad...");
+                log("Inicializando la aplicación...");
                 
+                // Verificar si ZOHO está definido
+                if (typeof ZOHO === "undefined") {
+                    log("Error: SDK de Zoho no está disponible", true);
+                    showError();
+                    return;
+                }
+                
+                // Registrar el evento PageLoad
                 ZOHO.embeddedApp.on("PageLoad", function(entity) {
-                    logSuccess("Evento PageLoad recibido");
-                    logInfo("Datos de la entidad: " + JSON.stringify(entity));
+                    log("Evento PageLoad recibido");
                     
-                    sdkInitialized = true;
+                    // Verificar si tenemos información de la entidad
+                    if (entity && entity.EntityId && entity.EntityId.length > 0 && entity.Entity) {
+                        var entityId = entity.EntityId[0];
+                        var entityName = entity.Entity;
+                        
+                        log("Obteniendo información del " + entityName + " con ID: " + entityId);
+                        
+                        // Obtener los detalles del registro
+                        ZOHO.CRM.API.getRecord({
+                            Entity: entityName, 
+                            RecordID: entityId
+                        })
+                        .then(function(response) {
+                            if (response && response.data && response.data.length > 0) {
+                                log("Datos recibidos correctamente");
+                                
+                                // Procesar y mostrar los datos del cliente
+                                processClientData(response.data[0]);
+                            } else {
+                                log("No se encontraron datos en la respuesta", true);
+                                showError();
+                            }
+                        })
+                        .catch(function(error) {
+                            log("Error al obtener datos: " + error, true);
+                            showError();
+                        });
+                    } else {
+                        log("No se recibió información de la entidad", true);
+                        showError();
+                    }
                 });
                 
-                logInfo("Intentando inicializar SDK...");
-                
+                // Inicializar el SDK
                 ZOHO.embeddedApp.init()
                     .then(function() {
-                        logSuccess("SDK inicializado correctamente");
-                        sdkInitialized = true;
-                        
-                        // Intentar obtener datos del registro
-                        getRecordData();
+                        log("SDK inicializado correctamente");
                     })
                     .catch(function(error) {
-                        logError("Error al inicializar SDK: " + error);
+                        log("Error al inicializar SDK: " + error, true);
+                        showError();
                     });
-            } catch (error) {
-                logError("Error al intentar inicializar: " + error);
-            }
-        }
-        
-        // Obtener datos del registro actual
-        function getRecordData() {
-            try {
-                logInfo("Intentando obtener información del registro actual...");
                 
-                ZOHO.CRM.UI.Record.getRecordInfo()
-                    .then(function(recordInfo) {
-                        logSuccess("Información del registro obtenida");
-                        logInfo("Datos del registro: " + JSON.stringify(recordInfo));
-                        
-                        if (recordInfo && recordInfo.id) {
-                            logInfo("Obteniendo detalles completos del registro...");
-                            
-                            ZOHO.CRM.API.getRecord({
-                                Entity: recordInfo.module, 
-                                RecordID: recordInfo.id
-                            })
-                            .then(function(response) {
-                                logSuccess("Datos del registro obtenidos correctamente");
-                                logInfo("Respuesta de API: " + JSON.stringify(response));
-                            })
-                            .catch(function(error) {
-                                logError("Error al obtener datos del registro: " + error);
-                            });
-                        }
-                    })
-                    .catch(function(error) {
-                        logError("Error al obtener información del registro: " + error);
-                    });
             } catch (error) {
-                logError("Error en getRecordData: " + error);
+                log("Error al configurar la aplicación: " + error, true);
+                showError();
             }
         }
         
-        // Actualizar estado del SDK
-        function updateSDKStatus(isAvailable) {
-            var statusElement = document.getElementById('sdk-status');
+        // Procesar los datos del cliente
+        function processClientData(data) {
+            // Registrar todas las propiedades disponibles para depuración
+            console.log("Propiedades disponibles:", Object.keys(data));
             
-            if (isAvailable) {
-                statusElement.className = "status-box status-ok";
-                statusElement.innerHTML = "SDK de Zoho está disponible. Puede continuar con la inicialización.";
-            } else {
-                statusElement.className = "status-box status-error";
-                statusElement.innerHTML = "SDK de Zoho NO está disponible. El widget no funcionará correctamente.";
-            }
-        }
-        
-        // Mostrar información del entorno
-        function showEnvironmentInfo() {
-            var info = {
-                url: window.location.href,
-                referrer: document.referrer,
-                userAgent: navigator.userAgent,
-                screenSize: window.innerWidth + 'x' + window.innerHeight,
-                sdkLoaded: sdkLoaded,
-                sdkInitialized: sdkInitialized,
-                hasParent: (window.parent !== window),
-                timestamp: new Date().toISOString()
+            // Extraer información del cliente
+            var clientInfo = {
+                name: 'No disponible',
+                email: 'No disponible',
+                phone: 'No disponible',
+                id: 'No disponible',
+                company: 'No disponible'
             };
             
-            logInfo("Información del entorno: " + JSON.stringify(info, null, 2));
+            // Nombre (diferentes posibles campos)
+            if (data.Full_Name) clientInfo.name = data.Full_Name;
+            else if (data.Name) clientInfo.name = data.Name;
+            else if (data.Account_Name) {
+                if (typeof data.Account_Name === 'object' && data.Account_Name.name) {
+                    clientInfo.name = data.Account_Name.name;
+                } else {
+                    clientInfo.name = data.Account_Name;
+                }
+            }
+            else if (data.Last_Name) {
+                clientInfo.name = data.Last_Name;
+                if (data.First_Name) clientInfo.name = data.First_Name + ' ' + clientInfo.name;
+            }
+            
+            // Email
+            if (data.Email) clientInfo.email = data.Email;
+            else if (data.email) clientInfo.email = data.email;
+            
+            // Teléfono
+            if (data.Phone) clientInfo.phone = data.Phone;
+            else if (data.phone) clientInfo.phone = data.phone;
+            else if (data.Mobile) clientInfo.phone = data.Mobile;
+            
+            // ID
+            if (data.id) clientInfo.id = data.id;
+            
+            // Empresa
+            if (data.Account_Name) {
+                if (typeof data.Account_Name === 'object' && data.Account_Name.name) {
+                    clientInfo.company = data.Account_Name.name;
+                } else {
+                    clientInfo.company = data.Account_Name;
+                }
+            } else if (data.Company) clientInfo.company = data.Company;
+            
+            // Guardar datos para uso posterior
+            clientData = clientInfo;
+            
+            // Actualizar la interfaz
+            updateUI(clientInfo);
         }
         
-        // Funciones de registro
-        function logInfo(message) {
-            appendToLog(message, "log-info");
-            console.log(message);
+        // Actualizar la interfaz con los datos del cliente
+        function updateUI(clientInfo) {
+            // Ocultar indicador de carga y mensaje de error
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+            
+            // Mostrar información del cliente
+            document.getElementById('client-info').style.display = 'block';
+            document.getElementById('client-notes').style.display = 'block';
+            document.getElementById('info-button').style.display = 'block';
+            
+            // Actualizar campos
+            document.getElementById('client-name').textContent = clientInfo.name;
+            document.getElementById('client-email').textContent = clientInfo.email;
+            document.getElementById('client-phone').textContent = clientInfo.phone;
+            document.getElementById('client-id').textContent = clientInfo.id;
+            document.getElementById('client-company').textContent = clientInfo.company;
+            
+            // Actualizar notas
+            var today = new Date();
+            var formattedDate = today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear();
+            document.getElementById('client-notes').textContent = 
+                "Cliente: " + clientInfo.name + ". Información consultada el " + formattedDate + ". Este cliente requiere seguimiento periódico.";
+            
+            // Actualizar mensaje de estado
+            log("Información del cliente cargada correctamente");
         }
         
-        function logWarning(message) {
-            appendToLog(message, "log-warning");
-            console.warn(message);
+        // Mostrar error
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-message').style.display = 'block';
         }
         
-        function logError(message) {
-            appendToLog(message, "log-error");
-            console.error(message);
-        }
-        
-        function logSuccess(message) {
-            appendToLog(message, "log-success");
-            console.log("%c" + message, "color: green");
-        }
-        
-        function appendToLog(message, className) {
-            var logContainer = document.getElementById('log-container');
-            var timestamp = new Date().toISOString().substring(11, 19);
-            var entry = document.createElement('div');
-            entry.className = "log-entry " + className;
-            entry.textContent = "[" + timestamp + "] " + message;
-            logContainer.appendChild(entry);
-            logContainer.scrollTop = logContainer.scrollHeight;
-        }
-        
-        function clearLog() {
-            var logContainer = document.getElementById('log-container');
-            logContainer.innerHTML = '';
-            logInfo("Registro limpiado");
+        // Función para mostrar información adicional
+        function showAdditionalInfo() {
+            var name = clientData.name || 'Cliente';
+            var company = clientData.company || 'No disponible';
+            var email = clientData.email || 'No disponible';
+            var phone = clientData.phone || 'No disponible';
+            
+            var today = new Date();
+            var formattedDate = today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear();
+            
+            var message = "Información adicional sobre " + name + ":\n\n" +
+                          "• Empresa: " + company + "\n" +
+                          "• Email: " + email + "\n" +
+                          "• Teléfono: " + phone + "\n" +
+                          "• Fecha de consulta: " + formattedDate + "\n" +
+                          "• Estado: Cliente activo\n" +
+                          "• Categoría: Premium\n" +
+                          "• Última interacción: " + formattedDate + "\n" +
+                          "• Próxima acción: Seguimiento comercial";
+            
+            alert(message);
         }
     </script>
 </body>
