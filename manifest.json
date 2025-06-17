@@ -1,17 +1,15 @@
 {
   "name": "TEST",
   "version": "1.0.0",
-  "description": "Información del cliente",
+  "description": "Información del Cliente",
   "modules": {
     "widgets": [
       {
         "location": "detailview",
-        "name": "TEST",
+        "name": "Información del Cliente",
         "url": "app.html"
       }
     ]
   },
-  "frameworkVersion": "1.0",
-  "platform": "web",
-  "category": "productivity"
+  "frameworkVersion": "1.0"
 }
