@@ -12,17 +12,6 @@
     ]
   },
   "frameworkVersion": "1.0",
-  "platform": "crmapi",
-  "category": "general",
-  "hostInfo": {
-    "moduleSupport": true
-  },
-  "permissions": {
-    "ui": {
-      "notification": true
-    },
-    "modules": {
-      "read": ["Contacts", "Leads", "Accounts"]
-    }
-  }
+  "platform": "web",
+  "category": "productivity"
 }
